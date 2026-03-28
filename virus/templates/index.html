@@ -1,0 +1,822 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PhishInspect | Secure Intelligence Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&family=Rajdhani:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #ff003c;
+            --accent-glow: rgba(255, 0, 60, 0.6);
+            --bg-dark: #020203;
+            --panel-bg: rgba(15, 15, 20, 0.95);
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 0, 60, 0.2);
+            --text-main: #f0f0f0;
+            --text-dim: #888888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                linear-gradient(rgba(2, 2, 3, 0.9), rgba(2, 2, 3, 0.95)),
+                url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070");
+            background-size: cover;
+            background-attachment: fixed;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* GRID OVERLAY */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background:
+                linear-gradient(rgba(255, 0, 60, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 60, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent);
+            opacity: .15;
+            animation: scan 8s linear infinite;
+            z-index: 2000;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            from {
+                top: 0;
+            }
+
+            to {
+                top: 100%;
+            }
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background: rgba(2, 2, 3, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 15px 5%;
+            border-bottom: 2px solid var(--accent);
+            box-shadow: 0 4px 20px rgba(255, 0, 60, 0.2);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'Orbitron';
+            font-size: 1.4rem;
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent-glow);
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .nav-logo span {
+            color: white;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #e0e0e0;
+            font-weight: 600;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            transition: .3s;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+
+        .nav-link:hover {
+            color: var(--accent);
+            text-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .nav-link.active {
+            color: white;
+            background: rgba(255, 0, 60, 0.1);
+            border: 1px solid var(--accent);
+        }
+
+        /* HAMBURGER BUTTON */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 28px;
+            height: 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            z-index: 1100;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 2px;
+            box-shadow: 0 0 6px var(--accent-glow);
+            transition: all 0.35s ease;
+            transform-origin: center;
+        }
+
+        .hamburger.open span:nth-child(1) {
+            transform: translateY(9px) rotate(45deg);
+        }
+
+        .hamburger.open span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+
+        .hamburger.open span:nth-child(3) {
+            transform: translateY(-9px) rotate(-45deg);
+        }
+
+        /* MOBILE MENU DRAWER */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(2, 2, 3, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 1050;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+            pointer-events: none;
+        }
+
+        .mobile-menu.open {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .mobile-menu::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(rgba(255, 0, 60, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 60, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .mobile-menu .nav-link {
+            font-size: 1rem;
+            letter-spacing: 3px;
+            padding: 16px 40px;
+            border: 1px solid transparent;
+            width: 280px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .mobile-menu .nav-link:hover,
+        .mobile-menu .nav-link.active {
+            border-color: var(--accent);
+            background: rgba(255, 0, 60, 0.08);
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.15);
+        }
+
+        .mobile-menu-logo {
+            font-family: 'Orbitron';
+            font-size: 1.2rem;
+            color: var(--accent);
+            letter-spacing: 3px;
+            margin-bottom: 40px;
+            text-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .mobile-menu-logo span {
+            color: white;
+        }
+
+        .mobile-divider {
+            width: 60px;
+            height: 1px;
+            background: var(--accent);
+            margin: 10px 0 20px;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        /* RESPONSIVE BREAKPOINTS */
+        @media (max-width: 900px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: flex;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+
+            .hero {
+                padding: 140px 5% 80px;
+            }
+        }
+
+        /* HERO SECTION */
+        .hero {
+            padding: 180px 5% 100px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron';
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+            color: white;
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .hero p {
+            max-width: 800px;
+            margin: auto;
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .hero-buttons {
+            margin-top: 50px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: white;
+            font-family: 'Orbitron';
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: .4s;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            box-shadow: 0 0 25px var(--accent-glow);
+            transform: scale(1.05);
+            color: white;
+        }
+
+        /* STATS */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 80px;
+        }
+
+        .stat-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-card h2 {
+            color: var(--accent);
+            font-family: 'Orbitron';
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-family: 'Rajdhani';
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        /* REVEAL SYSTEM */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 1s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* DEEP INTEL SECTION */
+        .intel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .cyber-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 4px;
+            position: relative;
+            transition: .4s;
+            overflow: hidden;
+        }
+
+        .cyber-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 30px var(--accent-glow);
+            transform: translateY(-10px);
+        }
+
+        .cyber-card i {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 10px var(--accent-glow));
+        }
+
+        .cyber-card h3 {
+            font-family: 'Orbitron';
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .cyber-card p {
+            color: var(--text-dim);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .cyber-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(225deg, var(--accent) 50%, transparent 50%);
+            opacity: 0.2;
+        }
+
+        footer {
+            background: #000;
+            padding: 50px 5%;
+            text-align: center;
+            border-top: 2px solid var(--accent);
+            margin-top: 100px;
+        }
+
+        footer p {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="scanline"></div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <i class="fas fa-shield-virus"></i>
+                PHISH<span>INSPECT</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link active">HOME</a></li>
+                <li><a href="#about-us" class="nav-link">ABOUT</a></li>
+                <li><a href="/register/" class="nav-link">REGISTRATION</a></li>
+                <li><a href="/login/" class="nav-link">LOGIN</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MOBILE MENU DRAWER -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-logo">PHISH<span>INSPECT</span></div>
+        <div class="mobile-divider"></div>
+        <a href="/" class="nav-link active" onclick="closeMobileMenu()">HOME</a>
+        <a href="#about-us" class="nav-link" onclick="closeMobileMenu()">ABOUT</a>
+        <a href="/register/" class="nav-link" onclick="closeMobileMenu()">REGISTRATION</a>
+        <a href="/login/" class="nav-link" onclick="closeMobileMenu()">LOGIN</a>
+    </div>
+
+    <section class="hero reveal active">
+        <p class="reveal"
+            style="color: var(--accent); font-family: 'Orbitron'; font-size: 0.9rem; margin-bottom: 10px;">SECURE
+            INTELLIGENCE INTERFACE</p>
+        <h1>GLOBAL SCAM DEFENSE SYSTEM</h1>
+        <p>Your ideas realized for the real world. We provide brilliant intelligence to intercept phishing and financial
+            fraud before they breach your perimeter.</p>
+
+        <div class="hero-buttons">
+            <a href="/login/" class="btn">GET STARTED</a>
+            <a href="#deep-intel" class="btn" style="background: rgba(255,255,255,0.05);">READ MORE</a>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card reveal">
+                <h2 class="counter" data-target="2400000">0</h2>
+                <p>Intelligence Reports</p>
+            </div>
+            <div class="stat-card reveal">
+                <h2 class="counter" data-target="10300000">0</h2>
+                <p>Threats Mitigated</p>
+            </div>
+            <div class="stat-card reveal">
+                <h2 class="counter" data-target="156">0</h2>
+                <p>% Attack Increase</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="deep-intel" class="reveal" style="padding: 100px 5%; background: rgba(255,0,0,0.01);">
+        <div style="text-align: center; margin-bottom: 60px;">
+            <h6 style="color: var(--accent); font-family: 'Orbitron'; letter-spacing: 3px; margin-bottom: 15px;">CORE
+                INTELLIGENCE MODULES</h6>
+            <h2 style="font-family: 'Orbitron'; font-size: 2.5rem; letter-spacing: 2px;">ADVANCED THREAT VECTORS</h2>
+        </div>
+
+        <div class="intel-grid">
+            <div class="cyber-card reveal">
+                <i class="fas fa-brain"></i>
+                <h3>NEURAL HEURISTICS</h3>
+                <p>Our proprietary AI engine analyzes file entropy and behavioral patterns in real-time. By processing
+                    millions of data points, it identifies polymorphic malware that traditional signatures miss.</p>
+            </div>
+            <div class="cyber-card reveal">
+                <i class="fas fa-database"></i>
+                <h3>GLOBAL FRAUD REGISTRY</h3>
+                <p>Access a live-synced repository of blacklisted UPI IDs, suspicious SMS templates, and malicious URLs.
+                    Collected from millions of intercepted attempts across the global perimeter.</p>
+            </div>
+            <div class="cyber-card reveal">
+                <i class="fas fa-bolt"></i>
+                <h3>REAL-TIME INTERCEPT</h3>
+                <p>Zero-latency scanning for SMS and Email communications. Our system wraps around your digital identity
+                    to neutralize phishing links before they can execute a credential harvest.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="reveal" style="padding: 100px 5%;">
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 50px; align-items: center;">
+            <div>
+                <h6 style="color: var(--accent); font-family: 'Orbitron'; margin-bottom: 10px;">ABOUT SYSTEM</h6>
+                <h2 style="font-family: 'Orbitron'; font-size: 2rem; margin-bottom: 20px;">BUILDING BRANDED DEFENSE</h2>
+                <p style="color: var(--text-dim); line-height: 1.8;">We help transform your ideas into real-world
+                    applications that outperform competition. Our agency has been creating award-winning digital
+                    products since 2008, now focused on secure intelligence.</p>
+            </div>
+            <div
+                style="border: 1px solid var(--border); padding: 5px; background: var(--panel-bg); position: relative; overflow: hidden; height: 400px; display: flex; align-items: center; justify-content: center;">
+                <!-- HUD Elements -->
+                <div
+                    style="position: absolute; top: 10px; left: 10px; font-family: 'Rajdhani'; font-size: 0.6rem; color: var(--accent); z-index: 5;">
+                    [SYS_TRACKING: ON]</div>
+                <div
+                    style="position: absolute; bottom: 10px; right: 10px; font-family: 'Rajdhani'; font-size: 0.6rem; color: var(--accent); z-index: 5;">
+                    SCAN_LEVEL: 98.4%</div>
+
+                <div
+                    style="position: absolute; top: -5px; left: -5px; width: 40px; height: 40px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); z-index: 10;">
+                </div>
+                <div
+                    style="position: absolute; bottom: -5px; right: -5px; width: 40px; height: 40px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); z-index: 10;">
+                </div>
+
+                <!-- Scanning Light Effect -->
+                <div
+                    style="position: absolute; width: 100%; height: 2px; background: var(--accent); top: 0; left: 0; box-shadow: 0 0 15px var(--accent); opacity: 0.4; animation: imgScan 4s ease-in-out infinite; z-index: 4;">
+                </div>
+
+                <img src="{% static 'images/cyber_intel.png' %}" alt="Cyber Security Intelligence"
+                    style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.8) contrast(1.2);">
+            </div>
+
+            <style>
+                @keyframes imgScan {
+                    0% {
+                        top: 0%;
+                    }
+
+                    50% {
+                        top: 100%;
+                    }
+
+                    100% {
+                        top: 0%;
+                    }
+                }
+            </style>
+        </div>
+    </section>
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+
+    <!-- ABOUT US SECTION -->
+    <section id="about-us" class="reveal"
+        style="padding: 120px 5%; background: rgba(255,0,60,0.02); position: relative; overflow: hidden;">
+
+        <!-- Background corner decorations -->
+        <div
+            style="position: absolute; top: 0; left: 0; width: 200px; height: 200px; border-top: 1px solid rgba(255,0,60,0.15); border-left: 1px solid rgba(255,0,60,0.15); pointer-events: none;">
+        </div>
+        <div
+            style="position: absolute; bottom: 0; right: 0; width: 200px; height: 200px; border-bottom: 1px solid rgba(255,0,60,0.15); border-right: 1px solid rgba(255,0,60,0.15); pointer-events: none;">
+        </div>
+
+        <div style="text-align: center; margin-bottom: 70px;">
+            <p
+                style="color: var(--accent); font-family: 'Orbitron'; font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 15px;">
+                // UNIT PROFILE</p>
+            <h2
+                style="font-family: 'Orbitron'; font-size: 2.5rem; letter-spacing: 3px; color: white; text-shadow: 0 0 15px var(--accent-glow);">
+                WHO WE ARE</h2>
+            <div
+                style="width: 80px; height: 2px; background: var(--accent); margin: 20px auto 0; box-shadow: 0 0 10px var(--accent-glow);">
+            </div>
+        </div>
+
+        <!-- Mission Statement -->
+        <div
+            style="max-width: 900px; margin: 0 auto 80px; text-align: center; background: var(--panel-bg); border: 1px solid var(--border); padding: 50px; position: relative;">
+            <div
+                style="position: absolute; top: -1px; left: 30px; background: #020203; padding: 0 15px; font-family: 'Rajdhani'; font-size: 0.75rem; color: var(--accent); letter-spacing: 2px;">
+                MISSION STATEMENT</div>
+            <i class="fas fa-crosshairs"
+                style="font-size: 2rem; color: var(--accent); filter: drop-shadow(0 0 10px var(--accent-glow)); margin-bottom: 25px; display: block;"></i>
+            <p style="color: #c8c8c8; font-size: 1.15rem; line-height: 1.9; font-weight: 300;">
+                PhishInspect was founded with a singular directive: <span
+                    style="color: white; font-weight: 600;">eliminate digital deception at its source.</span>
+                Operating at the intersection of machine learning and threat intelligence, we protect individuals and
+                enterprises
+                from the ever-evolving landscape of phishing, financial fraud, and social engineering attacks.
+            </p>
+        </div>
+
+        <!-- Team Stats Row -->
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2px; margin-bottom: 80px; border: 1px solid var(--border);">
+            <div
+                style="background: var(--panel-bg); padding: 35px; text-align: center; border-right: 1px solid var(--border);">
+                <div
+                    style="font-family: 'Orbitron'; font-size: 2.2rem; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); margin-bottom: 8px;">
+                    2008</div>
+                <div
+                    style="font-family: 'Rajdhani'; font-size: 0.8rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase;">
+                    Founded</div>
+            </div>
+            <div
+                style="background: var(--panel-bg); padding: 35px; text-align: center; border-right: 1px solid var(--border);">
+                <div
+                    style="font-family: 'Orbitron'; font-size: 2.2rem; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); margin-bottom: 8px;">
+                    150+</div>
+                <div
+                    style="font-family: 'Rajdhani'; font-size: 0.8rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase;">
+                    Analysts</div>
+            </div>
+            <div
+                style="background: var(--panel-bg); padding: 35px; text-align: center; border-right: 1px solid var(--border);">
+                <div
+                    style="font-family: 'Orbitron'; font-size: 2.2rem; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); margin-bottom: 8px;">
+                    47</div>
+                <div
+                    style="font-family: 'Rajdhani'; font-size: 0.8rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase;">
+                    Countries</div>
+            </div>
+            <div style="background: var(--panel-bg); padding: 35px; text-align: center;">
+                <div
+                    style="font-family: 'Orbitron'; font-size: 2.2rem; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); margin-bottom: 8px;">
+                    99.8%</div>
+                <div
+                    style="font-family: 'Rajdhani'; font-size: 0.8rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase;">
+                    Accuracy</div>
+            </div>
+        </div>
+
+        <!-- Core Values Grid -->
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 80px;">
+            <div class="cyber-card reveal" style="display: flex; gap: 20px; align-items: flex-start; padding: 30px;">
+                <i class="fas fa-eye"
+                    style="font-size: 1.8rem; color: var(--accent); filter: drop-shadow(0 0 8px var(--accent-glow)); flex-shrink: 0; margin-top: 4px;"></i>
+                <div>
+                    <h4 style="font-family: 'Orbitron'; font-size: 0.85rem; letter-spacing: 2px; margin-bottom: 10px;">
+                        TRANSPARENCY</h4>
+                    <p style="color: var(--text-dim); line-height: 1.6; font-size: 0.9rem;">Every threat verdict comes
+                        with a full audit trail. We explain exactly why something was flagged — no black-box decisions.
+                    </p>
+                </div>
+            </div>
+            <div class="cyber-card reveal" style="display: flex; gap: 20px; align-items: flex-start; padding: 30px;">
+                <i class="fas fa-shield-alt"
+                    style="font-size: 1.8rem; color: var(--accent); filter: drop-shadow(0 0 8px var(--accent-glow)); flex-shrink: 0; margin-top: 4px;"></i>
+                <div>
+                    <h4 style="font-family: 'Orbitron'; font-size: 0.85rem; letter-spacing: 2px; margin-bottom: 10px;">
+                        INTEGRITY</h4>
+                    <p style="color: var(--text-dim); line-height: 1.6; font-size: 0.9rem;">Your data never becomes our
+                        product. All intelligence processing is end-to-end encrypted, zero-log, zero-compromise.</p>
+                </div>
+            </div>
+            <div class="cyber-card reveal" style="display: flex; gap: 20px; align-items: flex-start; padding: 30px;">
+                <i class="fas fa-rocket"
+                    style="font-size: 1.8rem; color: var(--accent); filter: drop-shadow(0 0 8px var(--accent-glow)); flex-shrink: 0; margin-top: 4px;"></i>
+                <div>
+                    <h4 style="font-family: 'Orbitron'; font-size: 0.85rem; letter-spacing: 2px; margin-bottom: 10px;">
+                        INNOVATION</h4>
+                    <p style="color: var(--text-dim); line-height: 1.6; font-size: 0.9rem;">Threat actors never stop
+                        evolving — neither do we. Our R&D division ships new detection models every 72 hours.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team / Leadership -->
+        <div style="text-align: center; margin-bottom: 50px;">
+            <p
+                style="color: var(--accent); font-family: 'Orbitron'; font-size: 0.75rem; letter-spacing: 4px; margin-bottom: 10px;">
+                // COMMAND STRUCTURE</p>
+            <h3 style="font-family: 'Orbitron'; font-size: 1.6rem; letter-spacing: 2px;">LEADERSHIP UNIT</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px;">
+            <div class="cyber-card reveal" style="text-align: center; padding: 40px 30px;">
+                <div
+                    style="width: 70px; height: 70px; border: 2px solid var(--accent); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px var(--accent-glow);">
+                    <i class="fas fa-user" style="font-size: 1.5rem; color: var(--accent);"></i>
+                </div>
+                <h4 style="font-family: 'Orbitron'; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 6px;">
+                SALAHUDHEEN AYOOBI</h4>
+               
+            </div>
+            <div class="cyber-card reveal" style="text-align: center; padding: 40px 30px;">
+                <div
+                    style="width: 70px; height: 70px; border: 2px solid var(--accent); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px var(--accent-glow);">
+                    <i class="fas fa-user" style="font-size: 1.5rem; color: var(--accent);"></i>
+                </div>
+                <h4 style="font-family: 'Orbitron'; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 6px;">RIDHA
+                    </h4>
+                
+            </div>
+            <div class="cyber-card reveal" style="text-align: center; padding: 40px 30px;">
+                <div
+                    style="width: 70px; height: 70px; border: 2px solid var(--accent); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px var(--accent-glow);">
+                    <i class="fas fa-user" style="font-size: 1.5rem; color: var(--accent);"></i>
+                </div>
+                <h4 style="font-family: 'Orbitron'; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 6px;">SREE PRASAD
+                    </h4>
+               
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 PHISHINSPECT | SECURE_ACCESS_LEVEL: ALPHA | <a href="/admin_login/"
+                style="color: var(--accent); text-decoration: none;">SYSTEM_ADMIN</a></p>
+    </footer>
+
+    <script>
+        // Hamburger Menu Logic
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('open');
+            mobileMenu.classList.toggle('open');
+            document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+        });
+
+        function closeMobileMenu() {
+            hamburger.classList.remove('open');
+            mobileMenu.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // Scroll Reveal Logic
+        const revealElements = document.querySelectorAll('.reveal');
+        const scrollHandler = () => {
+            revealElements.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight - 50) {
+                    el.classList.add('active');
+                }
+            });
+        };
+        window.addEventListener('scroll', scrollHandler);
+        window.addEventListener('load', scrollHandler);
+
+        // Stats Counter Logic
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach(counter => {
+            const updateCount = () => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText.replace(/,/g, '');
+                const speed = 200;
+                const inc = target / speed;
+
+                if (count < target) {
+                    counter.innerText = Math.ceil(count + inc).toLocaleString();
+                    setTimeout(updateCount, 15);
+                } else {
+                    counter.innerText = target.toLocaleString();
+                }
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    updateCount();
+                    observer.disconnect();
+                }
+            });
+            observer.observe(counter);
+        });
+    </script>
+
+</body>
+
+</html>

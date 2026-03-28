@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Scan Database | ShieldUP</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #020203;
+            --panel-bg: rgba(15,15,20,0.97);
+            --accent-red: #ff003c;
+            --accent-green: #00ff88;
+            --accent-orange: #ffaa00;
+            --accent-blue: #00aaff;
+            --text-main: #f0f0f0;
+            --text-dim: #808080;
+            --border: rgba(255,255,255,0.06);
+            --row-hover: rgba(255,255,255,0.03);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-image:
+                linear-gradient(rgba(2,2,3,0.92), rgba(2,2,3,0.92)),
+                url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        .scanline {
+            width:100%; height:2px; background:var(--accent-red);
+            opacity:0.08; position:fixed; z-index:2000;
+            pointer-events:none; animation:moveScan 10s linear infinite;
+        }
+        @keyframes moveScan { 0%{top:0%} 100%{top:100%} }
+
+        .page-wrap { max-width:1200px; margin:0 auto; padding:30px 24px 60px; }
+
+        /* Header */
+        .page-header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;
+        }
+        .page-title {
+            font-family: 'Orbitron', sans-serif; font-size: 1.4rem; letter-spacing: 4px;
+            color: var(--text-main); display: flex; align-items: center; gap: 14px;
+        }
+        .page-title i { color: var(--accent-red); filter: drop-shadow(0 0 8px rgba(255, 0, 60, 0.4)); }
+
+        .back-btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px;
+            font-family: 'Orbitron', sans-serif; font-size: 0.7rem; letter-spacing: 1px;
+            text-decoration: none; color: var(--accent-red); border: 1px solid var(--accent-red);
+            background: rgba(255,0,60,0.07); border-radius: 3px; transition: 0.3s;
+        }
+        .back-btn:hover { background: var(--accent-red); color: white; }
+
+        /* Table */
+        .table-wrap {
+            background: var(--panel-bg); border: 1px solid var(--border);
+            border-radius: 4px; overflow: hidden; overflow-x: auto;
+        }
+        .table-meta {
+            padding: 14px 20px; font-family: 'Rajdhani', sans-serif; font-size: 0.85rem;
+            color: var(--text-dim); border-bottom: 1px solid var(--border);
+        }
+        .table-meta span { color: var(--text-main); font-weight: 600; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        thead th {
+            padding: 14px 18px; text-align: left; font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem; letter-spacing: 1.5px; color: var(--text-dim);
+            border-bottom: 1px solid var(--border); white-space: nowrap;
+        }
+        tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.2s; }
+        tbody tr:hover { background: var(--row-hover); }
+        tbody td { padding: 14px 18px; font-family: 'Inter', sans-serif; font-size: 0.9rem; vertical-align: middle; }
+
+        .file-cell { font-family: monospace; font-size: 0.95rem; color: var(--text-main); font-weight: 600; }
+        
+        /* Badges */
+        .badge {
+            display: inline-block; padding: 4px 12px; border-radius: 2px;
+            font-family: 'Orbitron', sans-serif; font-size: 0.6rem; letter-spacing: 1px; font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-malicious { background: rgba(255,0,60,0.15); color: var(--accent-red); border: 1px solid rgba(255,0,60,0.4); }
+        .badge-safe { background: rgba(0,255,136,0.1); color: var(--accent-green); border: 1px solid rgba(0,255,136,0.35); }
+
+        .stats-cell { font-family: monospace; font-size: 0.85rem; color: var(--text-dim); }
+        .stats-cell .m { color: var(--accent-red); font-weight: bold; }
+        .stats-cell .s { color: var(--accent-orange); font-weight: bold; }
+
+        .date-cell { font-family: 'Rajdhani', sans-serif; color: var(--text-dim); }
+
+        .btn-delete {
+            background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+            padding: 6px 12px; cursor: pointer; border-radius: 3px; font-size: 0.8rem; transition: 0.3s;
+        }
+        .btn-delete:hover { border-color: var(--accent-red); color: var(--accent-red); background: rgba(255,0,60,0.1); }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-dim); font-family: 'Rajdhani', sans-serif; }
+        .empty-state i { font-size: 3rem; margin-bottom: 16px; display: block; color: #333; }
+        .empty-state p { font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<div class="page-wrap">
+    
+    <div class="page-header">
+        <div class="page-title"><i class="fas fa-file-shield"></i> FILE SCAN HISTORY</div>
+        <a href="{% url 'admin_dashboard' %}" class="back-btn"><i class="fas fa-arrow-left"></i> BACK</a>
+    </div>
+
+    <div class="table-wrap">
+        <div class="table-meta">
+            {% if files %}
+                <div>Showing <span>{{ files|length }}</span> record{{ files|length|pluralize }}</div>
+            {% else %}
+                <div>No records found</div>
+            {% endif %}
+        </div>
+        
+        {% if files %}
+        <table>
+            <thead>
+                <tr>
+                    <th>FILE NAME</th>
+                    <th>STATUS</th>
+                    <th>DETECTION STATS</th>
+                    <th>TIMESTAMP</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td class="file-cell">{{ file.file_name|truncatechars:40 }}</td>
+                    <td>
+                        {% if file.is_malicious %}
+                            <span class="badge badge-malicious">MALICIOUS</span>
+                        {% else %}
+                            <span class="badge badge-safe">SAFE</span>
+                        {% endif %}
+                    </td>
+                    <td class="stats-cell">
+                        <span class="m">M: {{ file.vt_malicious }}</span> | 
+                        <span class="s">S: {{ file.vt_suspicious }}</span>
+                    </td>
+                    <td class="date-cell">{{ file.uploaded_at|date:"d M Y, H:i" }}</td>
+                    <td>
+                        <form action="{% url 'deletefile' file.id %}" method="POST" style="margin:0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-delete" title="Delete record" onclick="return confirm('Delete this scan record?');">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No file scans have been performed yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>

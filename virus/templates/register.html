@@ -1,0 +1,401 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>PhishInspect | Register Operative</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+--bg-dark:#020203;
+--panel-bg:rgba(15,15,20,0.95);
+--accent-red:#ff003c;
+--accent-red-glow:rgba(255,0,60,0.3);
+--text-main:#f0f0f0;
+--text-dim:#808080;
+--border-glow:rgba(255,255,255,0.05);
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+background-color:var(--bg-dark);
+color:var(--text-main);
+font-family:'Inter',sans-serif;
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:40px 0;
+
+background-image:linear-gradient(rgba(2,2,3,0.85),rgba(2,2,3,0.85)),
+url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070');
+
+background-size:cover;
+background-attachment:fixed;
+}
+
+.scanline{
+width:100%;
+height:2px;
+background:var(--accent-red);
+opacity:0.1;
+position:fixed;
+z-index:2000;
+pointer-events:none;
+animation:moveScan 8s linear infinite;
+}
+
+@keyframes moveScan{
+0%{top:0%}
+100%{top:100%}
+}
+
+.reg-container{
+width:450px;
+background:var(--panel-bg);
+border:1px solid var(--border-glow);
+border-top:4px solid var(--accent-red);
+padding:40px;
+border-radius:4px;
+backdrop-filter:blur(20px);
+box-shadow:0 20px 50px rgba(0,0,0,0.5);
+}
+
+.auth-header{
+text-align:center;
+margin-bottom:30px;
+}
+
+.auth-logo{
+font-size:2.2rem;
+color:var(--accent-red);
+margin-bottom:10px;
+filter:drop-shadow(0 0 10px var(--accent-red-glow));
+}
+
+.auth-header h2{
+font-family:'Orbitron',sans-serif;
+font-size:1.1rem;
+letter-spacing:2px;
+color:white;
+text-transform:uppercase;
+}
+
+.system-msg{
+font-family:monospace;
+font-size:0.7rem;
+color:#00ff88;
+margin-bottom:25px;
+text-align:center;
+opacity:0.7;
+}
+
+.input-group{
+margin-bottom:20px;
+position:relative;
+}
+
+.input-group i{
+position:absolute;
+left:0;
+top:12px;
+color:var(--accent-red);
+font-size:0.85rem;
+}
+
+.input-group input{
+width:100%;
+background:transparent;
+border:none;
+border-bottom:1px solid #333;
+padding:10px 10px 10px 30px;
+color:white;
+font-family:'Rajdhani',sans-serif;
+font-size:1.1rem;
+outline:none;
+transition:0.3s;
+}
+
+.input-group input:focus{
+border-bottom-color:var(--accent-red);
+background:rgba(255,0,60,0.02);
+}
+
+.register-btn{
+width:100%;
+background:var(--accent-red);
+color:white;
+border:none;
+padding:15px;
+font-family:'Orbitron',sans-serif;
+font-weight:700;
+font-size:0.85rem;
+letter-spacing:2px;
+cursor:pointer;
+transition:0.3s;
+margin-top:10px;
+}
+
+.register-btn:hover{
+background:#ff2b5a;
+box-shadow:0 0 20px var(--accent-red-glow);
+}
+
+.auth-footer{
+margin-top:25px;
+text-align:center;
+font-family:'Rajdhani',sans-serif;
+font-size:0.9rem;
+color:var(--text-dim);
+}
+
+.auth-footer a{
+color:var(--accent-red);
+text-decoration:none;
+font-weight:700;
+margin-left:5px;
+}
+
+/* SUCCESS POPUP */
+
+.success-box{
+position:fixed;
+top:20px;
+right:20px;
+background:#00ff88;
+color:black;
+padding:15px 25px;
+font-weight:bold;
+border-radius:6px;
+display:none;
+box-shadow:0 0 20px rgba(0,255,136,0.6);
+font-family:'Rajdhani';
+}
+
+/* BACK BUTTON */
+.back-link {
+    position: fixed;
+    top: 30px;
+    left: 30px;
+    z-index: 2500;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s;
+    padding: 8px 15px;
+    border: 1px solid transparent;
+}
+
+.back-link:hover {
+    color: var(--accent-red);
+    border: 1px solid var(--accent-red);
+    background: rgba(255, 0, 60, 0.05);
+    box-shadow: 0 0 15px var(--accent-red-glow);
+}
+
+</style>
+</head>
+
+<body>
+
+<a href="/" class="back-link">
+    <i class="fas fa-arrow-left"></i> BACK
+</a>
+
+<div class="scanline"></div>
+
+<div class="success-box" id="successBox">
+✔ Registration Successful!
+</div>
+
+<div class="reg-container">
+
+<div class="auth-header">
+<div class="auth-logo"><i class="fas fa-user-shield"></i></div>
+<h2>User Registration</h2>
+</div>
+
+<div class="system-msg">[INITIALIZING_ENROLLMENT_PROTOCOL]</div>
+
+<form method="POST" enctype="multipart/form-data">
+
+{% csrf_token %}
+
+<div class="input-group">
+<i class="fas fa-id-card"></i>
+<input type="text" name="username" placeholder="USERNAME" required>
+</div>
+
+<div class="input-group">
+<i class="fas fa-calendar-alt"></i>
+<input type="number" name="age" placeholder="AGE" min="0" required>
+</div>
+
+<div class="input-group">
+<i class="fas fa-phone"></i>
+<input type="number" name="phone" placeholder="PHONE" required>
+</div>
+
+<div class="input-group">
+<i class="fas fa-envelope"></i>
+<input type="email" name="email" placeholder="IDENTITY@EMAIL.COM" required>
+</div>
+
+<div class="input-group">
+<i class="fas fa-key"></i>
+<input type="password" name="password" placeholder="CREATE_ACCESS_KEY" required>
+</div>
+
+<div class="input-group">
+<i class="fas fa-shield-halved"></i>
+<input type="password" name="confirm_password" placeholder="CONFIRM_ACCESS_KEY" required>
+</div>
+
+<div class="input-group">
+<i class="fas fa-image"></i>
+<input type="file" name="image" accept="image/*" required>
+</div>
+
+<button type="submit" class="register-btn">REGISTER</button>
+
+</form>
+
+<div class="auth-footer">
+<p>ALREADY REGISTERED? <a href="/login/">LOGIN</a></p>
+</div>
+
+</div>
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    let success = "{{ success|default:'False' }}";
+
+    if(success === "True"){
+        alert("Registration Successful!, please login to continue.");
+        window.location.href = "/login/";
+    }
+
+    // --- Form Validation ---
+    const form = document.querySelector("form");
+    const phoneInput = document.querySelector('input[name="phone"]');
+    const ageInput = document.querySelector('input[name="age"]');
+    const emailInput = document.querySelector('input[name="email"]');
+    const passwordInput = document.querySelector('input[name="password"]');
+    const confirmPasswordInput = document.querySelector('input[name="confirm_password"]');
+
+    // Helper: create or update error message below an input
+    function showError(input, message) {
+        let errorEl = input.parentElement.querySelector('.field-error');
+        if (!errorEl) {
+            errorEl = document.createElement('span');
+            errorEl.className = 'field-error';
+            input.parentElement.appendChild(errorEl);
+        }
+        errorEl.textContent = message;
+        input.style.borderBottomColor = '#ff003c';
+    }
+
+    // Helper: clear error message
+    function clearError(input) {
+        const errorEl = input.parentElement.querySelector('.field-error');
+        if (errorEl) errorEl.remove();
+        input.style.borderBottomColor = '';
+    }
+
+    // Clear errors on input change
+    [phoneInput, ageInput, emailInput, passwordInput, confirmPasswordInput].forEach(function(el) {
+        el.addEventListener('input', function() { clearError(el); });
+    });
+
+    form.addEventListener("submit", function(e) {
+        let isValid = true;
+
+        // Clear all previous errors
+        document.querySelectorAll('.field-error').forEach(el => el.remove());
+
+        // 1. Mobile number: must be exactly 10 digits
+        const phoneVal = phoneInput.value.trim();
+        if (!/^\d{10}$/.test(phoneVal)) {
+            showError(phoneInput, '⚠ Mobile number must be exactly 10 digits');
+            isValid = false;
+        }
+
+        // 2. Age: must be >= 14
+        const ageVal = parseInt(ageInput.value, 10);
+        if (isNaN(ageVal) || ageVal < 14) {
+            showError(ageInput, '⚠ Age must be 14 or above');
+            isValid = false;
+        }
+
+        // 3. Email: basic format validation
+        const emailVal = emailInput.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailVal)) {
+            showError(emailInput, '⚠ Please enter a valid email address');
+            isValid = false;
+        }
+
+        // 4. Password: minimum 6 characters
+        const passVal = passwordInput.value;
+        if (passVal.length < 6) {
+            showError(passwordInput, '⚠ Password must be at least 6 characters');
+            isValid = false;
+        }
+
+        // 5. Confirm password must match password
+        const confirmVal = confirmPasswordInput.value;
+        if (passVal !== confirmVal) {
+            showError(confirmPasswordInput, '⚠ Passwords do not match');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            // Scroll to the first error
+            const firstError = document.querySelector('.field-error');
+            if (firstError) {
+                firstError.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+
+});
+
+</script>
+
+<style>
+.field-error {
+    display: block;
+    color: #ff003c;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.78rem;
+    margin-top: 5px;
+    letter-spacing: 0.5px;
+    animation: errorFadeIn 0.3s ease;
+}
+
+@keyframes errorFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+</body>
+</html>

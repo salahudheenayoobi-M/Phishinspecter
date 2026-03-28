@@ -1,0 +1,475 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Scan Database | ShieldUP</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #020203;
+            --panel-bg: rgba(15,15,20,0.97);
+            --accent-red: #ff003c;
+            --accent-red-glow: rgba(255,0,60,0.25);
+            --accent-green: #00ff88;
+            --accent-orange: #ffaa00;
+            --accent-blue: #00aaff;
+            --text-main: #f0f0f0;
+            --text-dim: #808080;
+            --border: rgba(255,255,255,0.06);
+            --row-hover: rgba(255,255,255,0.03);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-image:
+                linear-gradient(rgba(2,2,3,0.92), rgba(2,2,3,0.92)),
+                url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        /* ── scanline ── */
+        .scanline {
+            width:100%; height:2px; background:var(--accent-red);
+            opacity:0.08; position:fixed; z-index:2000;
+            pointer-events:none; animation:moveScan 10s linear infinite;
+        }
+        @keyframes moveScan { 0%{top:0%} 100%{top:100%} }
+
+        /* ── layout ── */
+        .page-wrap { max-width:1200px; margin:0 auto; padding:30px 24px 60px; }
+
+        /* ── header ── */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .page-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 4px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .page-title i { color: var(--accent-blue); filter: drop-shadow(0 0 8px rgba(0, 170, 255, 0.4)); }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-decoration: none;
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+            background: rgba(0,170,255,0.07);
+            border-radius: 3px;
+            transition: 0.3s;
+        }
+        .back-btn:hover { background: var(--accent-blue); color: white; }
+
+        /* ── stat cards ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+        .stat-card.total::before  { background: var(--accent-blue); }
+        .stat-card.fraud::before  { background: var(--accent-red); }
+        .stat-card.safe::before   { background: var(--accent-green); }
+        .stat-card.pending::before{ background: var(--accent-orange); }
+        .stat-card.error::before  { background: #aa44ff; }
+
+        .stat-card .num {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .stat-card.total .num  { color: var(--accent-blue); }
+        .stat-card.fraud .num  { color: var(--accent-red); }
+        .stat-card.safe .num   { color: var(--accent-green); }
+        .stat-card.pending .num{ color: var(--accent-orange); }
+        .stat-card.error .num  { color: #aa44ff; }
+
+        .stat-card .label {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ── filter bar ── */
+        .filter-bar {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .filter-bar form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            width: 100%;
+        }
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            padding: 10px 16px 10px 40px;
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            border-radius: 3px;
+            outline: none;
+            transition: 0.3s;
+            position: relative;
+        }
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+        }
+        .search-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+        .search-input:focus { border-color: var(--accent-blue); }
+
+        .filter-select {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            padding: 10px 16px;
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+        .filter-select option { background: #111; }
+
+        .filter-btn {
+            background: var(--accent-blue);
+            border: none;
+            color: black;
+            font-weight: 600;
+            padding: 10px 22px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: 0.3s;
+        }
+        .filter-btn:hover { box-shadow: 0 0 10px rgba(0,170,255,0.4); }
+
+        .clear-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: var(--text-dim);
+            padding: 10px 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 3px;
+            text-decoration: none;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .clear-btn:hover { border-color: #888; color: var(--text-main); }
+
+        /* ── table ── */
+        .table-wrap {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            overflow-x: auto;
+        }
+        .table-meta {
+            padding: 14px 20px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-meta span { color: var(--text-main); font-weight: 600; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        thead th {
+            padding: 14px 18px;
+            text-align: left;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        tbody tr {
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.2s;
+        }
+        tbody tr:hover { background: var(--row-hover); }
+        tbody td {
+            padding: 14px 18px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        /* URL cell */
+        .url-cell {
+            color: var(--text-main);
+            text-decoration: none;
+            word-break: break-all;
+            display: block;
+            max-width: 400px;
+            line-height: 1.4;
+        }
+        .url-cell:hover { color: var(--accent-blue); text-decoration: underline; }
+
+        /* User cell */
+        .user-cell {
+            color: var(--accent-blue);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* status badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 2px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-scam    { background: rgba(255,0,60,0.15);  color: var(--accent-red);    border: 1px solid rgba(255,0,60,0.4); }
+        .badge-safe    { background: rgba(0,255,136,0.1);  color: var(--accent-green);  border: 1px solid rgba(0,255,136,0.35); }
+        .badge-pending { background: rgba(255,170,0,0.12); color: var(--accent-orange); border: 1px solid rgba(255,170,0,0.4); }
+        .badge-error   { background: rgba(170,68,255,0.15);color: #aa44ff;              border: 1px solid rgba(170,68,255,0.4); }
+
+        /* date cell */
+        .date-cell { font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; color: var(--text-dim); white-space: nowrap; }
+
+        /* empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 16px; display: block; color: #333; }
+        .empty-state p { font-size: 1.1rem; }
+
+        @media (max-width: 700px) {
+            tbody td, thead th { padding: 12px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<div class="page-wrap">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <i class="fas fa-link"></i>
+            URL SCAN DATABASE
+        </div>
+        <a href="/admin_dashboard/" class="back-btn">
+            <i class="fas fa-arrow-left"></i> BACK
+        </a>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="num">{{ stats.total }}</div>
+            <div class="label">Total Scanned</div>
+        </div>
+        <div class="stat-card fraud">
+            <div class="num">{{ stats.scam }}</div>
+            <div class="label">Scam / Phishing</div>
+        </div>
+        <div class="stat-card safe">
+            <div class="num">{{ stats.safe }}</div>
+            <div class="label">Safe URLs</div>
+        </div>
+        <div class="stat-card pending">
+            <div class="num">{{ stats.pending }}</div>
+            <div class="label">Processing</div>
+        </div>
+        <div class="stat-card error">
+            <div class="num">{{ stats.error }}</div>
+            <div class="label">Failed Scans</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form method="GET" action="">
+            <div class="search-wrap">
+                <i class="fas fa-search"></i>
+                <input
+                    type="text"
+                    name="q"
+                    class="search-input"
+                    placeholder="Search URL domain or path..."
+                    value="{{ q }}">
+            </div>
+
+            <select name="status" class="filter-select">
+                <option value="">All Statuses</option>
+                <option value="SCAM"    {% if status_filter == "SCAM" %}selected{% endif %}>🔴 Scam</option>
+                <option value="SAFE"    {% if status_filter == "SAFE" %}selected{% endif %}>🟢 Safe</option>
+                <option value="PENDING" {% if status_filter == "PENDING" %}selected{% endif %}>🟡 Pending</option>
+                <option value="ERROR"   {% if status_filter == "ERROR" %}selected{% endif %}>🟣 Error</option>
+            </select>
+
+            <button type="submit" class="filter-btn">
+                <i class="fas fa-filter"></i> FILTER
+            </button>
+
+            {% if q or status_filter %}
+            <a href="{% url 'reports' %}" class="clear-btn">
+                <i class="fas fa-times"></i> CLEAR
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+        <div class="table-meta">
+            {% if urls %}
+                <div>Showing <span>{{ urls|length }}</span> record{{ urls|length|pluralize }}</div>
+            {% else %}
+                <div>No records found</div>
+            {% endif %}
+
+            {% if q or status_filter %}
+            <div style="color: var(--accent-blue); font-size:0.8rem;">
+                <i class="fas fa-filter"></i> Filters active
+            </div>
+            {% endif %}
+        </div>
+
+        {% if urls %}
+        <table>
+            <thead>
+                <tr>
+                    <th>#ID</th>
+                    <th>SUBMITTED BY</th>
+                    <th>TARGET URL</th>
+                    <th>STATUS</th>
+                    <th>TIMESTAMP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in urls %}
+                <tr>
+                    <!-- ID -->
+                    <td style="color:var(--text-dim); font-size:0.8rem; font-family:monospace;">{{ item.id }}</td>
+
+                    <!-- User -->
+                    <td><span class="user-cell">{{ item.user.username }}</span></td>
+
+                    <!-- URL -->
+                    <td>
+                        <a href="{{ item.link }}" class="url-cell" target="_blank" rel="noopener noreferrer">
+                            {{ item.link|truncatechars:65 }}
+                        </a>
+                    </td>
+
+                    <!-- Status badge -->
+                    <td>
+                        {% if item.status == "SCAM" %}
+                            <span class="badge badge-scam">SCAM</span>
+                        {% elif item.status == "SAFE" %}
+                            <span class="badge badge-safe">SAFE</span>
+                        {% elif item.status == "PENDING" %}
+                            <span class="badge badge-pending">PENDING</span>
+                        {% elif item.status == "ERROR" %}
+                            <span class="badge badge-error">ERROR</span>
+                        {% else %}
+                            <span class="badge badge-pending">{{ item.status }}</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Date -->
+                    <td class="date-cell">{{ item.created_at|date:"d M Y, H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No URL records found{% if q or status_filter %} matching your filters{% endif %}.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div><!-- /page-wrap -->
+
+</body>
+</html>

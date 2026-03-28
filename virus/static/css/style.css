@@ -1,0 +1,153 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background-color: #0f0f0f; /* Deep black background */
+  color: #ffffff; /* Default text color */
+  line-height: 1.6;
+}
+
+/* Header */
+header {
+  background-color: #121212;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 2px solid #ff7f11;
+}
+
+header h1, header h2 {
+  color: #ff7f11; /* Orange titles */
+}
+
+nav a {
+  margin: 0 12px;
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+nav a:hover {
+  color: #ff7f11;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
+  color: white;
+}
+
+.hero h2 {
+  font-size: 2.5em;
+  margin-bottom: 15px;
+  color: #ff7f11;
+}
+
+.hero p {
+  font-size: 1.2em;
+}
+
+.hero .btn {
+  display: inline-block;
+  margin-top: 25px;
+  padding: 12px 30px;
+  background: #ff7f11;
+  color: black;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.hero .btn:hover {
+  background: #e66f0e;
+}
+
+/* Footer */
+footer {
+  background-color: #121212;
+  color: #888;
+  text-align: center;
+  padding: 15px;
+  margin-top: 50px;
+}
+
+/* Forms */
+.form-container {
+  max-width: 400px;
+  margin: 100px auto;
+  background: #1e1e1e;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(255, 127, 17, 0.2);
+}
+
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #ff7f11;
+}
+
+form input, form button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background: #2a2a2a;
+  color: white;
+}
+
+form button {
+  background: #ff7f11;
+  color: black;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+form button:hover {
+  background: #e66f0e;
+}
+
+/* Dashboard Sections */
+.upload-section, .results-section {
+  padding: 40px;
+  background: #1c1c1c;
+  margin: 30px auto;
+  max-width: 700px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(255, 127, 17, 0.2);
+}
+
+.upload-section h3,
+.results-section h3 {
+  color: #ff7f11;
+  margin-bottom: 20px;
+}
+
+.status-safe {
+  color: #00e676;
+  font-weight: bold;
+}
+
+.status-malicious {
+  color: #ff3d00;
+  font-weight: bold;
+}
+
+input[type="file"] {
+  background-color: #2a2a2a;
+  color: white;
+  border: 1px solid #444;
+  padding: 10px;
+  border-radius: 5px;
+}

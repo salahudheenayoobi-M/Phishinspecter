@@ -1,0 +1,410 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PhishInspect | Secure File Intelligence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #020203;
+            --panel-bg: rgba(15, 15, 20, 0.95);
+            --accent-red: #ff003c;
+            --accent-red-glow: rgba(255, 0, 60, 0.3);
+            --accent-green: #00ff88;
+            --text-main: #f0f0f0;
+            --text-dim: #808080;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(rgba(2,2,3,0.92), rgba(2,2,3,0.95)), 
+                        url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070");
+            background-size: cover;
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 50px 20px;
+        }
+
+        /* Cyber Grid */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(rgba(255,0,60,.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,0,60,.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .inspect-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 0, 60, 0.2);
+            border-top: 4px solid var(--accent-red);
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 3000;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-decoration: none;
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            background: rgba(255, 0, 60, 0.08);
+            border-radius: 3px;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            background: var(--accent-red);
+            color: white;
+            box-shadow: 0 0 12px var(--accent-red-glow);
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header-section h1 {
+            font-family: 'Orbitron';
+            letter-spacing: 3px;
+            color: var(--accent-red);
+            margin-bottom: 10px;
+        }
+
+        /* Advanced Drop Zone UI */
+        .drop-zone {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px dashed rgba(255, 0, 60, 0.4);
+            border-radius: 6px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            background: rgba(255, 0, 60, 0.05);
+            border-color: var(--accent-red);
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.15) inset;
+        }
+
+        .drop-zone input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            opacity: 0;
+            z-index: 10;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 0, 60, 0.2);
+            border-top: 3px solid var(--accent-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .scan-btn {
+            width: 100%;
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-family: 'Orbitron';
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .scan-btn:hover {
+            background: #d60032;
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.4);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            text-align: center;
+            border-left: 2px solid #444;
+            font-size: 0.8rem;
+        }
+
+        .stat-item.malicious { border-color: var(--accent-red); }
+        .stat-item.safe { border-color: var(--accent-green); }
+
+        .file-card {
+            background: rgba(255,255,255,0.02);
+            border-left: 4px solid;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+<a href="/dashboard/" class="back-btn">
+    <i class="fas fa-arrow-left"></i> Back
+</a>
+
+<div class="inspect-container">
+
+    <div class="header-section">
+        <h1>MALWARE SCANNER</h1>
+        <p>Upload Your Files To Scan</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="scanForm">
+        {% csrf_token %}
+        <div class="drop-zone" id="dropZone">
+            <i class="fas fa-cloud-upload-alt fa-3x" style="color: var(--accent-red); margin-bottom: 15px;"></i>
+            <p style="font-family: 'Orbitron'; font-size: 1.2rem; letter-spacing: 1px; color: var(--text-main);">DRAG & DROP FILE HERE</p>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 8px;">or click anywhere in this box to browse</p>
+            <div style="margin-top: 15px; display: inline-block; background: rgba(0, 255, 136, 0.1); border: 1px solid var(--accent-green); padding: 5px 15px; border-radius: 20px;">
+                <p style="font-size: 0.75rem; color: var(--accent-green); font-weight: 600; letter-spacing: 0.5px;">✓ SUPPORTS ALL FORMATS (.exe, .pdf, .docx, .zip, .apk, etc.)</p>
+            </div>
+            <input type="file" name="file" id="fileInput" required>
+        </div>
+
+        <div id="fileInfo" style="display: none; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0, 255, 136, 0.05); border-left: 3px solid var(--accent-green); margin-bottom: 20px; font-size: 0.9rem;">
+            <div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 70%;">
+                <i class="fas fa-file-alt" style="color: var(--accent-green); margin-right: 10px; font-size: 1.2rem;"></i>
+                <span id="fileName" style="font-weight: 600; font-family: 'Rajdhani'; letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis;"></span>
+            </div>
+            <span id="fileSize" style="color: var(--text-dim); font-size: 0.8rem; font-family: 'Orbitron'; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 3px;"></span>
+        </div>
+
+        <button type="submit" class="scan-btn" id="analyzeBtn">
+            <span id="btnText"><i class="fas fa-shield-alt" style="margin-right: 8px;"></i> INIT SCAN</span>
+        </button>
+
+        <div id="loadingOverlay" style="display: none; align-items: center; justify-content: center; margin-top: 20px; background: rgba(255, 0, 60, 0.05); border: 1px solid rgba(255, 0, 60, 0.3); padding: 15px; border-radius: 4px;">
+            <div class="loader"></div>
+            <span style="font-family: 'Orbitron'; color: var(--accent-red); font-size: 0.95rem; letter-spacing: 2px;">ACTIVATING HEURISTICS ENGINE...</span>
+        </div>
+    </form>
+
+    {% if result %}
+    <div style="margin-top:40px;">
+        <h3>THREAT SUMMARY</h3>
+        <div class="stat-grid">
+            <div class="stat-item malicious">Malicious<br><strong>{{ result.malicious }}</strong></div>
+            <div class="stat-item">Suspicious<br><strong>{{ result.suspicious }}</strong></div>
+            <div class="stat-item safe">Harmless<br><strong>{{ result.harmless }}</strong></div>
+            <div class="stat-item">Undetected<br><strong>{{ result.undetected }}</strong></div>
+        </div>
+
+        {% if prescan %}
+        <!-- File Info -->
+        <div style="margin-top:25px; padding:15px; background:rgba(255,255,255,0.02); border-left:2px solid #444;">
+            <div style="font-family:'Orbitron'; font-size:0.8rem; margin-bottom:10px;">FILE INTELLIGENCE</div>
+            {% if prescan.sha256 %}
+            <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:5px;">
+                SHA-256: <span style="color:#00ff88; font-family:monospace;">{{ prescan.sha256 }}</span>
+            </div>
+            {% endif %}
+            <div style="font-size:0.75rem; color:var(--text-dim);">
+                Risk Score: <strong style="color:{% if prescan.risk_score >= 50 %}var(--accent-red){% elif prescan.risk_score >= 20 %}#ff6600{% else %}var(--accent-green){% endif %};">{{ prescan.risk_score }}/100</strong>
+                &nbsp;|&nbsp; Verdict: <strong style="color:{% if prescan.risk_level == 'MALICIOUS' %}var(--accent-red){% elif prescan.risk_level == 'SUSPICIOUS' %}#ff6600{% else %}var(--accent-green){% endif %};">{{ prescan.risk_level }}</strong>
+            </div>
+        </div>
+
+        <!-- Heuristic Check Results -->
+        <div style="margin-top:20px;">
+            <div style="font-family:'Orbitron'; font-size:0.8rem; margin-bottom:12px;">LOCAL HEURISTIC ANALYSIS ({{ prescan.checks|length }} CHECKS)</div>
+            {% for check in prescan.checks %}
+            <div style="padding:8px 15px; background:rgba(255,255,255,0.02); border-left:3px solid {% if check.status == 'FAIL' %}var(--accent-red){% elif check.status == 'WARN' %}#ff6600{% else %}var(--accent-green){% endif %}; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span style="font-family:'Rajdhani'; font-size:0.85rem; font-weight:700;">{{ check.name }}</span>
+                    <div style="font-size:0.7rem; color:var(--text-dim);">{{ check.detail }}</div>
+                </div>
+                <span style="font-family:'Orbitron'; font-size:0.65rem; color:{% if check.status == 'FAIL' %}var(--accent-red){% elif check.status == 'WARN' %}#ff6600{% else %}var(--accent-green){% endif %};">{{ check.status }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if result.engines %}
+        <!-- Detected Engines -->
+        <div style="margin-top:20px;">
+            <div style="font-family:'Orbitron'; font-size:0.8rem; margin-bottom:12px;">DETECTED BY ENGINES ({{ result.engines|length }})</div>
+            {% for engine in result.engines %}
+            <div class="file-card" style="border-left-color:var(--accent-red); padding:12px 15px; margin-bottom:6px;">
+                <div>
+                    <span style="font-family:'Rajdhani'; font-weight:700;">{{ engine.engine }}</span>
+                </div>
+                <span style="color:var(--accent-red); font-size:0.8rem;">{{ engine.result }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 50px;">
+        <h3 style="font-family: 'Orbitron'; margin-bottom: 20px;">
+            <i class="fas fa-database"></i> ANALYSIS LOGS
+        </h3>
+
+        {% for file in files %}
+        <div class="file-card" style="border-left-color: {% if file.is_malicious %}var(--accent-red){% else %}var(--accent-green){% endif %};">
+            <div>
+                <div style="font-family: 'Orbitron'; font-size: 0.9rem;">
+                    {{ file.file_name }}
+                </div>
+                <div style="color: var(--text-dim); font-size: 0.7rem;">
+                    {{ file.uploaded_at|date:"Y-m-d H:i" }}
+                    &nbsp;|&nbsp; Score: {{ file.risk_score }}/100
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <div style="font-family: 'Rajdhani'; font-weight:700; color: {% if file.is_malicious %}var(--accent-red){% else %}var(--accent-green){% endif %};">
+                    {% if file.is_malicious %}
+                        {{ file.malware_type|default:"MALICIOUS" }}
+                    {% else %}
+                        SECURE
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const scanForm = document.getElementById('scanForm');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const btnText = document.getElementById('btnText');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Handle Drag & Drop styles
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('dragover');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('dragover');
+        }, false);
+    });
+
+    // Handle File Selection
+    fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files.length > 0) {
+            const file = this.files[0];
+            
+            // Format size
+            let size = file.size;
+            let formattedSize = '';
+            if (size < 1024) formattedSize = size + ' B';
+            else if (size < 1024 * 1024) formattedSize = (size / 1024).toFixed(2) + ' KB';
+            else formattedSize = (size / (1024 * 1024)).toFixed(2) + ' MB';
+
+            fileName.textContent = file.name;
+            fileSize.textContent = formattedSize;
+            
+            fileInfo.style.display = 'flex';
+            dropZone.style.borderColor = 'var(--accent-green)';
+            dropZone.querySelector('i').style.color = 'var(--accent-green)';
+        } else {
+            fileInfo.style.display = 'none';
+            dropZone.style.borderColor = '';
+            dropZone.querySelector('i').style.color = 'var(--accent-red)';
+        }
+    });
+
+    // Handle Form Submission
+    scanForm.onsubmit = function() {
+        if (!fileInput.files.length) {
+            alert("Please select a file to scan.");
+            return false;
+        }
+
+        // Show loading state
+        analyzeBtn.style.display = 'none';
+        loadingOverlay.style.display = 'flex';
+        dropZone.style.pointerEvents = 'none';
+        dropZone.style.opacity = '0.6';
+        
+        let dots = 0;
+        setInterval(() => {
+            dots = (dots + 1) % 4;
+            let text = "ANALYZING THREATS";
+            for(let i=0; i<dots; i++) text += ".";
+            loadingOverlay.querySelector('span').textContent = text;
+        }, 500);
+
+        return true;
+    };
+</script>
+
+</body>
+</html>

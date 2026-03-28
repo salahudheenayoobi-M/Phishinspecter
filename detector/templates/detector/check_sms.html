@@ -1,0 +1,415 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Shield | SMS Threat Detection</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #050508;
+            --panel-bg: rgba(10, 10, 15, 0.9);
+            --accent-red: #ff003c;
+            --accent-red-glow: rgba(255, 0, 60, 0.3);
+            --accent-green: #00ff88;
+            --accent-blue: #00d4ff;
+            --text-main: #e0e0e0;
+            --text-dim: #808080;
+            --border-glow: rgba(255, 255, 255, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(255, 0, 60, 0.05), transparent),
+                url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+        }
+
+        /* Animated Grid Background */
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px),
+                linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px);
+            z-index: -1;
+            animation: moveGrid 20s linear infinite;
+        }
+
+        @keyframes moveGrid {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 40px; }
+        }
+
+        .scanline {
+            width: 100%; height: 2px;
+            background: var(--accent-red);
+            opacity: 0.1;
+            position: fixed;
+            z-index: 2000;
+            pointer-events: none;
+            animation: moveScan 8s linear infinite;
+        }
+
+        @keyframes moveScan { 0% { top: 0% } 100% { top: 100% } }
+
+        /* BACK BUTTON */
+        .back-btn {
+            position: fixed;
+            top: 20px; left: 20px;
+            z-index: 3000;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-decoration: none;
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            background: rgba(255, 0, 60, 0.08);
+            border-radius: 3px;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            background: var(--accent-red);
+            color: white;
+            box-shadow: 0 0 12px var(--accent-red-glow);
+        }
+
+        .inspect-container {
+            width: 95%;
+            max-width: 650px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-glow);
+            border-top: 4px solid var(--accent-red);
+            padding: 50px;
+            border-radius: 4px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            text-align: center;
+        }
+
+        /* Decorative Corners */
+        .inspect-container::before, .inspect-container::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--accent-red);
+        }
+        .inspect-container::before { top: -5px; left: -5px; border-right: 0; border-bottom: 0; }
+        .inspect-container::after { bottom: -5px; right: -5px; border-left: 0; border-top: 0; }
+
+        .header-section { margin-bottom: 30px; }
+
+        .header-section i {
+            font-size: 3rem;
+            color: var(--accent-red);
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px var(--accent-red-glow));
+        }
+
+        .header-section h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #fff, var(--accent-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .system-status {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--accent-green);
+            margin-bottom: 30px;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+            border-left: 4px solid var(--accent-blue);
+            padding: 20px;
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            outline: none;
+            transition: 0.3s;
+            border-radius: 4px;
+            resize: none;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+
+        .scan-btn {
+            width: 100%;
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: 0.3s;
+            clip-path: polygon(0 0, 95% 0, 100% 25%, 100% 100%, 5% 100%, 0 75%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .scan-btn:hover {
+            box-shadow: 0 0 20px var(--accent-red-glow);
+            filter: brightness(1.1);
+        }
+
+        /* Loading Bar Logic */
+        #progressContainer {
+            display: none;
+            margin-top: 25px;
+            text-align: left;
+        }
+
+        .progress-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            color: var(--accent-red);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bg {
+            width: 100%; height: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #222;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%; height: 100%;
+            background: var(--accent-red);
+            box-shadow: 0 0 15px var(--accent-red);
+            transition: width 0.2s ease;
+        }
+
+        /* Results */
+        .result-container {
+            margin-top: 35px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 25px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .scam-theme { color: var(--accent-red); border: 1px solid var(--accent-red); background: rgba(255,0,60,0.1); }
+        .safe-theme { color: var(--accent-green); border: 1px solid var(--accent-green); background: rgba(0,255,136,0.1); }
+
+        .result-message {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .footer-note {
+            margin-top: 30px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid-bg"></div>
+    <div class="scanline"></div>
+
+    <a href="/dashboard/" class="back-btn">
+        <i class="fas fa-arrow-left"></i> BACK 
+    </a>
+
+    <div class="inspect-container">
+        <div class="header-section">
+            <i class="fas fa-microchip"></i>
+            <h1>EMAIL AND SMS ANALYZER</h1>
+            <div class="system-status">
+                [AI_ENGINE: ACTIVE] | [HEURISTICS: LOADED] | [STATUS: SECURE]
+            </div>
+        </div>
+
+        <form id="smsForm" method="POST" action="{% url 'detector:check_sms' %}">
+            {% csrf_token %}
+            <div class="input-wrapper">
+                <textarea name="message" id="smsInput" rows="5" placeholder="PASTE SUSPICIOUS SMS CONTENT HERE..." required></textarea>
+            </div>
+
+            <button type="submit" id="analyzeBtn" class="scan-btn">
+                <i class="fas fa-brain"></i> ANALYZE 
+            </button>
+        </form>
+
+        <div id="progressContainer">
+            <div class="progress-label">
+                <span id="loadText">ANALYSIS...</span>
+                <span id="percentText">0%</span>
+            </div>
+            <div class="progress-bg">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+        </div>
+
+        {% if result_data %}
+            <div class="result-container" style="text-align: left;">
+                
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 20px;">
+                    <div>
+                        {% if result_data.status == 'SCAM' %}
+                            <span class="status-badge scam-theme"><i class="fas fa-biohazard"></i> THREAT DETECTED</span>
+                            <div class="result-message" style="color: var(--accent-red);">{{ result_data.status }}</div>
+                        {% elif result_data.status == 'SUSPICIOUS' %}
+                            <span class="status-badge" style="color: #ffaa00; border: 1px solid #ffaa00; background: rgba(255,170,0,0.1);"><i class="fas fa-exclamation-triangle"></i> WARNING</span>
+                            <div class="result-message" style="color: #ffaa00;">{{ result_data.status }}</div>
+                        {% else %}
+                            <span class="status-badge safe-theme"><i class="fas fa-check-circle"></i> CLEAR</span>
+                            <div class="result-message" style="color: var(--accent-green);">{{ result_data.status }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="text-align: right;">
+                        <span style="font-family: 'Rajdhani', sans-serif; color: var(--text-dim); font-size: 0.8rem; letter-spacing: 2px;">RISK SCORE</span><br>
+                        <span style="font-family: 'Orbitron', sans-serif; font-size: 2.5rem; font-weight: 700; color: {% if result_data.score >= 80 %}var(--accent-red){% elif result_data.score >= 40 %}#ffaa00{% else %}var(--accent-green){% endif %};">{{ result_data.score }}</span>
+                        <span style="color: var(--text-dim); font-family: 'Orbitron', sans-serif;">/100</span>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;">
+                    <p style="color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 0.95rem; margin-bottom: 15px;">
+                        {{ result_data.message }}
+                    </p>
+
+                    <!-- ML Engine -->
+                    <div style="margin-bottom: 10px; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem;">
+                        <i class="fas fa-robot" style="color: var(--accent-blue); width: 25px;"></i> AI Model Prediction: 
+                        <strong style="color: {% if result_data.breakdown.ml_prediction == 'spam' %}var(--accent-red){% else %}var(--accent-green){% endif %}; text-transform: uppercase;">
+                            {{ result_data.breakdown.ml_prediction }}
+                        </strong>
+                    </div>
+
+                    <!-- Keywords -->
+                    <div style="margin-bottom: 10px; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem;">
+                        <i class="fas fa-filter" style="color: var(--text-dim); width: 25px;"></i> Triggers:
+                        {% if result_data.breakdown.matched_categories %}
+                            {% for cat in result_data.breakdown.matched_categories %}
+                                <span style="display: inline-block; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 3px; font-size: 0.75rem; color: #ffaa00; margin-left: 5px; text-transform: uppercase;">{{ cat }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span style="color: var(--text-dim);">None</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- URLs -->
+                    <div style="font-family: 'Rajdhani', sans-serif; font-size: 0.9rem;">
+                        <i class="fas fa-link" style="color: var(--text-dim); width: 25px;"></i> URLs Found:
+                        {% if result_data.breakdown.urls %}
+                            <div style="margin-top: 10px; padding-left: 25px;">
+                                {% for url_info in result_data.breakdown.urls %}
+                                    <div style="margin-bottom: 6px; font-family: monospace; font-size: 0.85rem;">
+                                        • <span style="color: {% if url_info.is_suspicious %}var(--accent-red){% else %}var(--accent-blue){% endif %};">{{ url_info.url }}</span>
+                                        {% if url_info.is_suspicious %}
+                                            <span style="color: var(--accent-red); font-size: 0.7rem; margin-left: 10px;">[{{ url_info.reason }}]</span>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <span style="color: var(--text-dim);">None</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="footer-note">
+            SECURE ANALYTICS TERMINAL V4.0 // ALL QUERIES LOGGED.
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('smsForm');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const percentText = document.getElementById('percentText');
+
+        form.onsubmit = function(e) {
+            e.preventDefault();
+
+            analyzeBtn.style.display = 'none';
+            progressContainer.style.display = 'block';
+
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => { form.submit(); }, 400);
+                } else {
+                    width += Math.floor(Math.random() * 15) + 1;
+                    if (width > 100) width = 100;
+                    progressBar.style.width = width + '%';
+                    percentText.innerText = width + '%';
+                }
+            }, 120);
+        };
+    </script>
+</body>
+</html>

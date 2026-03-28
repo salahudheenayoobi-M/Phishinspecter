@@ -1,0 +1,362 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishInspect | URL Scanner</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+:root {
+--bg-dark:#020203;
+--panel-bg:rgba(15,15,20,0.95);
+--accent-red:#ff003c;
+--accent-red-glow:rgba(255,0,60,0.3);
+--accent-green:#00ff88;
+--accent-orange:#ffaa00;
+--text-main:#f0f0f0;
+--text-dim:#808080;
+--border-glow:rgba(255,255,255,0.05);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+background-color:var(--bg-dark);
+color:var(--text-main);
+font-family:'Inter',sans-serif;
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+background-image:
+linear-gradient(rgba(2,2,3,0.85),rgba(2,2,3,0.85)),
+url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070');
+background-size:cover;
+background-position:center;
+overflow-x:hidden;
+}
+
+.scanline{
+width:100%;
+height:2px;
+background:var(--accent-red);
+opacity:0.1;
+position:fixed;
+z-index:2000;
+pointer-events:none;
+animation:moveScan 8s linear infinite;
+}
+
+@keyframes moveScan{
+0%{top:0%}
+100%{top:100%}
+}
+
+/* BACK BUTTON */
+
+.back-btn{
+position:fixed;
+top:20px;
+left:20px;
+z-index:3000;
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:10px 18px;
+font-family:'Orbitron',sans-serif;
+font-size:0.7rem;
+letter-spacing:1px;
+text-decoration:none;
+color:var(--accent-red);
+border:1px solid var(--accent-red);
+background:rgba(255,0,60,0.08);
+border-radius:3px;
+transition:0.3s;
+}
+
+.back-btn:hover{
+background:var(--accent-red);
+color:white;
+box-shadow:0 0 12px var(--accent-red-glow);
+}
+
+.inspect-container{
+width:90%;
+max-width:600px;
+background:var(--panel-bg);
+border:1px solid var(--border-glow);
+border-top:4px solid var(--accent-red);
+padding:40px;
+border-radius:4px;
+position:relative;
+backdrop-filter:blur(20px);
+box-shadow:0 20px 50px rgba(0,0,0,0.8);
+text-align:center;
+}
+
+.header-section{margin-bottom:30px;}
+
+.header-section i{
+font-size:3.5rem;
+color:var(--accent-red);
+margin-bottom:15px;
+filter:drop-shadow(0 0 10px var(--accent-red-glow));
+}
+
+.header-section h1{
+font-family:'Orbitron',sans-serif;
+font-size:1.6rem;
+letter-spacing:4px;
+text-transform:uppercase;
+}
+
+.system-status{
+font-family:monospace;
+font-size:0.75rem;
+color:var(--accent-green);
+margin-bottom:30px;
+opacity:0.8;
+letter-spacing:1px;
+}
+
+.input-wrapper{
+position:relative;
+width:100%;
+margin-bottom:25px;
+}
+
+.input-wrapper i.fa-link{
+position:absolute;
+left:15px;
+top:50%;
+transform:translateY(-50%);
+color:var(--accent-red);
+}
+
+.input-wrapper input{
+width:100%;
+background:rgba(0,0,0,0.6);
+border:1px solid #333;
+padding:18px 100px 18px 45px;
+color:white;
+font-family:'Rajdhani',sans-serif;
+font-size:1.1rem;
+outline:none;
+transition:0.3s;
+border-radius:4px;
+}
+
+.input-wrapper input:focus{
+border-color:var(--accent-red);
+box-shadow:0 0 15px var(--accent-red-glow);
+}
+
+.paste-btn{
+position:absolute;
+right:12px;
+top:50%;
+transform:translateY(-50%);
+background:rgba(255,0,60,0.1);
+border:1px solid var(--accent-red);
+color:var(--accent-red);
+padding:6px 12px;
+font-family:'Orbitron',sans-serif;
+font-size:0.65rem;
+cursor:pointer;
+border-radius:2px;
+}
+
+.scan-btn{
+width:100%;
+background:var(--accent-red);
+color:white;
+border:none;
+padding:20px;
+font-family:'Orbitron',sans-serif;
+font-weight:700;
+font-size:1rem;
+letter-spacing:2px;
+cursor:pointer;
+transition:0.3s;
+clip-path:polygon(0 0,95% 0,100% 25%,100% 100%,5% 100%,0 75%);
+display:flex;
+align-items:center;
+justify-content:center;
+gap:12px;
+}
+
+#progressContainer{
+display:none;
+margin-top:20px;
+text-align:left;
+}
+
+.progress-label{
+font-family:'Orbitron',sans-serif;
+font-size:0.7rem;
+color:var(--accent-red);
+margin-bottom:10px;
+display:flex;
+justify-content:space-between;
+}
+
+.progress-bg{
+width:100%;
+height:8px;
+background:rgba(255,255,255,0.05);
+border:1px solid #222;
+position:relative;
+overflow:hidden;
+}
+
+.progress-bar{
+width:0%;
+height:100%;
+background:var(--accent-red);
+box-shadow:0 0 15px var(--accent-red);
+transition:width 0.2s ease;
+}
+
+.footer-note{
+margin-top:30px;
+font-family:'Rajdhani',sans-serif;
+font-size:0.75rem;
+color:var(--text-dim);
+}
+
+.alert-box{
+margin-top:20px;
+padding:14px 18px;
+border-radius:4px;
+font-family:'Rajdhani',sans-serif;
+font-size:1rem;
+display:flex;
+align-items:center;
+gap:10px;
+text-align:left;
+}
+
+.alert-box.error{
+background:rgba(255,0,60,0.1);
+border:1px solid var(--accent-red);
+color:var(--accent-red);
+}
+
+.alert-box.pending{
+background:rgba(255,170,0,0.1);
+border:1px solid var(--accent-orange);
+color:var(--accent-orange);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="scanline"></div>
+
+<a href="/dashboard/" class="back-btn">
+<i class="fas fa-arrow-left"></i> Back
+</a>
+
+<div class="inspect-container">
+
+<div class="header-section">
+<i class="fas fa-shield-virus"></i>
+<h1>URL INSPECTOR</h1>
+</div>
+
+<div id="statusHeader" class="system-status">
+[DATABASE: ONLINE] | [HEURISTICS: ACTIVE] | [VULN_SCAN: STANDBY]
+</div>
+
+<form id="inspectForm" method="POST">
+{% csrf_token %}
+
+<div class="input-wrapper">
+<i class="fas fa-link"></i>
+<input type="text" id="urlInput" name="link" placeholder="ENTER TARGET URL" required>
+<button type="button" class="paste-btn" onclick="pasteURL()">
+<i class="fas fa-paste"></i> PASTE
+</button>
+</div>
+
+<button type="submit" id="analyzeBtn" name="check" class="scan-btn">
+<i class="fas fa-search-radiation"></i> ANALYZE LINK
+</button>
+
+</form>
+
+{% if error %}
+<div class="alert-box {% if final_status == 'PENDING' %}pending{% else %}error{% endif %}">
+  <i class="fas {% if final_status == 'PENDING' %}fa-clock{% else %}fa-exclamation-triangle{% endif %}"></i>
+  {{ error }}
+</div>
+{% endif %}
+
+<div id="progressContainer">
+<div class="progress-label">
+<span id="loadText">INITIALIZING SCAN...</span>
+<span id="percentText">0%</span>
+</div>
+<div class="progress-bg">
+<div id="progressBar" class="progress-bar"></div>
+</div>
+</div>
+
+<div class="footer-note">
+WARNING: ALL QUERIES ARE LOGGED IN SECURE VAULT.
+</div>
+
+</div>
+
+<script>
+
+async function pasteURL(){
+try{
+const text=await navigator.clipboard.readText();
+document.getElementById('urlInput').value=text;
+}catch(err){}
+}
+
+const form=document.getElementById('inspectForm');
+const analyzeBtn=document.getElementById('analyzeBtn');
+const progressContainer=document.getElementById('progressContainer');
+const progressBar=document.getElementById('progressBar');
+
+form.onsubmit=function(e){
+
+e.preventDefault();
+
+analyzeBtn.style.display='none';
+progressContainer.style.display='block';
+
+let width=0;
+
+const interval=setInterval(()=>{
+
+if(width>=100){
+clearInterval(interval);
+setTimeout(()=>{form.submit();},400);
+}else{
+width+=Math.floor(Math.random()*10)+1;
+if(width>100)width=100;
+progressBar.style.width=width+'%';
+document.getElementById('percentText').innerText=width+'%';
+}
+
+},100);
+
+};
+
+</script>
+
+</body>
+</html>

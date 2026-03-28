@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishInspect | Secure Access</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Check if URL has ?success=1
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("success") === "1") {
+        showPopup("Login successfully!!!");
+        // Remove query string so it doesn't show again on reload
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Function to create cyberpunk popup
+    function showPopup(message) {
+        const popup = document.createElement("div");
+        popup.textContent = message;
+        popup.style.position = "fixed";
+        popup.style.top = "20px";
+        popup.style.left = "50%";
+        popup.style.transform = "translateX(-50%)";
+        popup.style.background = "rgba(255,0,60,0.9)";
+        popup.style.color = "#fff";
+        popup.style.padding = "15px 30px";
+        popup.style.fontFamily = "'Orbitron', sans-serif";
+        popup.style.fontWeight = "700";
+        popup.style.fontSize = "1rem";
+        popup.style.border = "2px solid #ff003c";
+        popup.style.borderRadius = "5px";
+        popup.style.boxShadow = "0 0 20px rgba(255,0,60,0.7)";
+        popup.style.zIndex = "9999";
+        popup.style.opacity = "0";
+        popup.style.transition = "opacity 0.5s, top 0.5s";
+
+        document.body.appendChild(popup);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            popup.style.top = "40px";
+            popup.style.opacity = "1";
+        });
+
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            popup.style.top = "0px";
+            popup.style.opacity = "0";
+            popup.addEventListener("transitionend", () => popup.remove());
+        }, 3000);
+    }
+
+    // Optional: your existing form validation
+    const form = document.querySelector("form");
+    form.addEventListener("submit", function(e) {
+        const email = form.email.value.trim();
+        const password = form.password.value.trim();
+        let errorMsg = "";
+
+        if (!email) errorMsg = "Email is required!";
+        else if (!password) errorMsg = "Access key is required!";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errorMsg = "Enter a valid email!";
+
+        if (errorMsg) {
+            e.preventDefault();
+            showPopup(errorMsg);
+        }
+    });
+});
+</script>
+    <style>
+        :root {
+            --bg-dark: #020203;
+            --panel-bg: rgba(15, 15, 20, 0.95);
+            --accent-red: #ff003c;
+            --accent-red-glow: rgba(255, 0, 60, 0.3);
+            --text-main: #f0f0f0;
+            --text-dim: #808080;
+            --border-glow: rgba(255, 255, 255, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(rgba(2, 2, 3, 0.85), rgba(2, 2, 3, 0.85)), url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070');
+            background-size: cover;
+            overflow: hidden;
+        }
+
+        .scanline {
+            width: 100%; height: 2px; background: var(--accent-red);
+            opacity: 0.1; position: fixed; z-index: 2000;
+            pointer-events: none; animation: moveScan 8s linear infinite;
+        }
+        @keyframes moveScan { 0% { top: 0% } 100% { top: 100% } }
+
+        .login-container {
+            width: 400px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-glow);
+            border-top: 4px solid var(--accent-red);
+            padding: 40px;
+            border-radius: 4px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .auth-header { text-align: center; margin-bottom: 35px; }
+        .auth-logo { font-size: 2.5rem; color: var(--accent-red); margin-bottom: 10px; filter: drop-shadow(0 0 10px var(--accent-red-glow)); }
+        .auth-header h2 { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; letter-spacing: 2px; color: white; text-transform: uppercase; }
+
+        .input-group { margin-bottom: 25px; position: relative; }
+        .input-group i { position: absolute; left: 0; top: 12px; color: var(--accent-red); font-size: 0.9rem; }
+        .input-group input {
+            width: 100%; background: transparent; border: none; border-bottom: 1px solid #333;
+            padding: 10px 10px 10px 30px; color: white; font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem; outline: none; transition: 0.3s;
+        }
+        .input-group input:focus { border-bottom-color: var(--accent-red); background: rgba(255, 0, 60, 0.02); }
+
+        .login-btn {
+            width: 100%; background: var(--accent-red); color: white; border: none; padding: 15px;
+            font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.9rem;
+            letter-spacing: 2px; cursor: pointer; transition: 0.3s;
+            clip-path: polygon(0 0, 95% 0, 100% 25%, 100% 100%, 5% 100%, 0 75%);
+        }
+        .login-btn:hover { background: #ff2b5a; box-shadow: 0 0 20px var(--accent-red-glow); transform: translateY(-2px); }
+
+        .auth-footer { margin-top: 30px; text-align: center; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; color: var(--text-dim); }
+        .auth-footer a { color: var(--accent-red); text-decoration: none; font-weight: 700; margin-left: 5px; }
+        .system-msg { font-family: monospace; font-size: 0.7rem; color: #00ff88; margin-bottom: 20px; text-align: center; opacity: 0.7; }
+        
+        /* BACK BUTTON */
+        .back-link {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 2500;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+            padding: 8px 15px;
+            border: 1px solid transparent;
+        }
+
+        .back-link:hover {
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            background: rgba(255, 0, 60, 0.05);
+            box-shadow: 0 0 15px var(--accent-red-glow);
+        }
+    </style>
+</head>
+<body>
+
+<a href="/" class="back-link">
+    <i class="fas fa-arrow-left"></i> BACK
+</a>
+
+<div class="scanline"></div>
+
+<div class="login-container">
+    <div class="auth-header">
+        <div class="auth-logo"><i class="fas fa-fingerprint"></i></div>
+        <h2>Secure Login</h2>
+    </div>
+
+    <div class="system-msg">[SECURE_CHANNEL_ESTABLISHED]</div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" name="email" placeholder="IDENTITY@EMAIL.COM" required>
+        </div>
+
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" name="password" placeholder="ACCESS_KEY" required>
+        </div>
+
+        <button type="submit"  onclick="addEventListener()" class="login-btn">LOGIN</button>
+    </form>
+
+    <div class="auth-footer">
+        <p style="margin-top: 15px;">NEW OPERATIVE? <a href="/register/">REGISTER</a></p>
+    </div>
+</div>
+
+</body>
+</html>

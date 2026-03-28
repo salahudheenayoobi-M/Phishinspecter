@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Database | ShieldUP</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #020203;
+            --panel-bg: rgba(15,15,20,0.97);
+            --accent-red: #ff003c;
+            --accent-green: #00ff88;
+            --accent-orange: #ffaa00;
+            --accent-blue: #00aaff;
+            --accent-purple: #b200ff;
+            --text-main: #f0f0f0;
+            --text-dim: #808080;
+            --border: rgba(255,255,255,0.06);
+            --row-hover: rgba(255,255,255,0.03);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-image:
+                linear-gradient(rgba(2,2,3,0.92), rgba(2,2,3,0.92)),
+                url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        .scanline {
+            width:100%; height:2px; background:var(--accent-purple);
+            opacity:0.08; position:fixed; z-index:2000;
+            pointer-events:none; animation:moveScan 10s linear infinite;
+        }
+        @keyframes moveScan { 0%{top:0%} 100%{top:100%} }
+
+        /* ── layout ── */
+        .page-wrap { max-width:1200px; margin:0 auto; padding:30px 24px 60px; }
+
+        /* ── header ── */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .page-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 4px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .page-title i { color: var(--accent-purple); filter: drop-shadow(0 0 8px rgba(178, 0, 255, 0.4)); }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-decoration: none;
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+            background: rgba(0,170,255,0.07);
+            border-radius: 3px;
+            transition: 0.3s;
+        }
+        .back-btn:hover { background: var(--accent-blue); color: white; }
+
+        /* Table */
+        .table-wrap {
+            background: var(--panel-bg); border: 1px solid var(--border);
+            border-radius: 4px; overflow: hidden; overflow-x: auto;
+        }
+        .table-meta {
+            padding: 14px 20px; font-family: 'Rajdhani', sans-serif; font-size: 0.85rem;
+            color: var(--text-dim); border-bottom: 1px solid var(--border);
+        }
+        .table-meta span { color: var(--text-main); font-weight: 600; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        thead th {
+            padding: 14px 18px; text-align: left; font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem; letter-spacing: 1.5px; color: var(--text-dim);
+            border-bottom: 1px solid var(--border); white-space: nowrap;
+        }
+        tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.2s; }
+        tbody tr:hover { background: var(--row-hover); }
+        tbody td { padding: 14px 18px; font-family: 'Inter', sans-serif; font-size: 0.9rem; vertical-align: middle; }
+
+        .msg-cell { font-size: 0.9rem; color: var(--text-main); max-width: 350px; line-height: 1.4; }
+        
+        /* Badges */
+        .badge {
+            display: inline-block; padding: 4px 12px; border-radius: 2px;
+            font-family: 'Orbitron', sans-serif; font-size: 0.6rem; letter-spacing: 1px; font-weight: 700;
+        }
+        .badge-user { background: rgba(0,170,255,0.1); color: var(--accent-blue); border: 1px solid rgba(0,170,255,0.3); }
+        .badge-anon { background: rgba(128,128,128,0.1); color: var(--text-dim); border: 1px solid rgba(128,128,128,0.3); }
+        
+        .score-cell { font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 1.1rem; }
+        .date-cell { font-family: 'Rajdhani', sans-serif; color: var(--text-dim); }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-dim); font-family: 'Rajdhani', sans-serif; }
+        .empty-state i { font-size: 3rem; margin-bottom: 16px; display: block; color: #333; }
+        .empty-state p { font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<div class="page-wrap">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-title">
+            <i class="fas fa-comment-dots"></i>
+            USER FEEDBACK DATABASE
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> BACK
+        </a>
+    </div>
+
+    <div class="table-wrap">
+        <div class="table-meta">
+            {% if feedbacks %}
+                <div>Showing <span>{{ feedbacks|length }}</span> recorded user transmission{{ feedbacks|length|pluralize }}</div>
+            {% else %}
+                <div>No records found</div>
+            {% endif %}
+        </div>
+        
+        {% if feedbacks %}
+        <table>
+            <thead>
+                <tr>
+                    <th>USER IDENTIFIER</th>
+                    <th>RATING</th>
+                    <th>MESSAGE CONTENT</th>
+                    <th>TIMESTAMP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in feedbacks %}
+                <tr>
+                    <td>
+                        {% if f.user %}
+                            <span class="badge badge-user">{{ f.user.username|upper }} (#{{ f.user.id }})</span>
+                        {% else %}
+                            <span class="badge badge-anon">ANONYMOUS</span>
+                        {% endif %}
+                    </td>
+                    <td class="score-cell" style="color: {% if f.rating <= 2 %}var(--accent-red){% elif f.rating == 3 %}var(--accent-orange){% else %}var(--accent-green){% endif %}">
+                        {{ f.rating }} / 5
+                    </td>
+                    <td class="msg-cell">{{ f.message }}</td>
+                    <td class="date-cell">{{ f.created_at|date:"d M Y, H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-comment-slash"></i>
+            <p>No user feedback has been submitted yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,196 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Report | PhishInspect</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #020203;
+            --panel-bg: rgba(15, 15, 20, 0.95);
+            --accent-red: #ff003c;
+            --accent-green: #00ff88;
+            --accent-orange: #ffaa00;
+            --text-main: #f0f0f0;
+            --text-dim: #808080;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(rgba(2, 2, 3, 0.9), rgba(2, 2, 3, 0.9)), url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070');
+            background-size: cover;
+            margin: 0;
+        }
+
+        .results-wrapper {
+            width: 90%;
+            max-width: 600px;
+            background: var(--panel-bg);
+            padding: 40px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-top: 4px solid var(--accent-red);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .verdict-header {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        /* Layout for Chart + Text */
+        .content-layout {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-box {
+            width: 220px;
+            height: 220px;
+            flex-shrink: 0;
+        }
+
+        .stats-list {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid #333;
+            border-radius: 2px;
+            font-size: 1.1rem;
+        }
+
+        .stat-row.malicious { border-color: var(--accent-red); color: var(--accent-red); }
+        .stat-row.suspicious { border-color: var(--accent-orange); color: var(--accent-orange); }
+        .stat-row.harmless { border-color: var(--accent-green); color: var(--accent-green); }
+        .stat-row.undetected { border-color: var(--text-dim); color: var(--text-dim); }
+
+        .stat-label { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-family: 'Orbitron', sans-serif; }
+
+        .action-area {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 12px 30px;
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            text-decoration: none;
+            font-family: 'Orbitron';
+            font-size: 0.8rem;
+            transition: 0.3s;
+            clip-path: polygon(0 0, 90% 0, 100% 30%, 100% 100%, 10% 100%, 0 70%);
+        }
+
+        .btn-back:hover {
+            background: var(--accent-red);
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.4);
+        }
+
+        @media (max-width: 550px) {
+            .content-layout { flex-direction: column; text-align: center; }
+            .stats-list { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="results-wrapper">
+    <div class="verdict-header">
+        {% if final_status == "SAFE" %}
+            <h2 style="color: var(--accent-green)"><i class="fas fa-shield-alt"></i> VERDICT: SECURE</h2>
+        {% else %}
+            <h2 style="color: var(--accent-red)"><i class="fas fa-biohazard"></i> VERDICT: MALICIOUS</h2>
+        {% endif %}
+    </div>
+
+    <div class="content-layout">
+        <div class="chart-box">
+            <canvas id="threatChart"></canvas>
+        </div>
+
+        <div class="stats-list">
+            <div class="stat-row malicious">
+                <span class="stat-label">Malicious</span>
+                <span class="stat-value">{{ stats.malicious }}</span>
+            </div>
+            <div class="stat-row suspicious">
+                <span class="stat-label">Suspicious</span>
+                <span class="stat-value">{{ stats.suspicious }}</span>
+            </div>
+            <div class="stat-row harmless">
+                <span class="stat-label">Harmless</span>
+                <span class="stat-value">{{ stats.harmless }}</span>
+            </div>
+            <div class="stat-row undetected">
+                <span class="stat-label">Undetected</span>
+                <span class="stat-value">{{ stats.undetected }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-area">
+        <a href="/urlscanner/" class="btn-back">INITIALIZE NEW SCAN</a>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('threatChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Malicious', 'Suspicious', 'Harmless', 'Undetected'],
+            datasets: [{
+                data: [{{ stats.malicious }}, {{ stats.suspicious }}, {{ stats.harmless }}, {{ stats.undetected }}],
+                backgroundColor: ['#ff003c', '#ffaa00', '#00ff88', '#333333'],
+                borderColor: '#020203',
+                borderWidth: 3,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false },
+                tooltip: { enabled: true }
+            },
+            cutout: '75%'
+        }
+    });
+</script>
+
+</body>
+</html>
